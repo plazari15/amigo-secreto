@@ -52,11 +52,14 @@ class RealizaSorteio extends Command
             }
 
             $Pessoas = $Participantes;
-            $PessoasCollect = collect($Pessoas);
-            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro
-            $PessoasCollect->push($Primeiro); //Coloca ele no fim
 
-            $PessoasCollect = $PessoasCollect->values();
+            $PessoasCollect = collect($Pessoas);
+
+            $PessoasCollect = $PessoasCollect->shuffle();
+//            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro\
+//            $PessoasCollect->push($Primeiro); //Coloca ele no fim
+
+            $PessoasCollect = $PessoasCollect->all();
             $Pessoas = $Pessoas->values();
 
             $resultado = [];
@@ -64,6 +67,9 @@ class RealizaSorteio extends Command
             $PessoasShuffled = $Pessoas->shuffle();
 
             foreach ($PessoasShuffled->all() as $i => $pessoa) {
+                if($pessoa->id == $PessoasCollect[$i]->id){
+                    $PessoasShuffled = $Pessoas->shuffle();
+                }
                 $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
             }
 
