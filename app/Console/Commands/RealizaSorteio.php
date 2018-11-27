@@ -51,28 +51,11 @@ class RealizaSorteio extends Command
                 exit;
             }
 
-            $Pessoas = $Participantes;
+            $resultado = $this->executaSorteio($Participantes);
 
-            $PessoasCollect = collect($Pessoas);
 
-            $PessoasCollect = $PessoasCollect->shuffle();
-//            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro\
-//            $PessoasCollect->push($Primeiro); //Coloca ele no fim
 
-            $PessoasCollect = $PessoasCollect->all();
-            $Pessoas = $Pessoas->values();
-
-            $resultado = [];
-
-            $PessoasShuffled = $Pessoas->shuffle();
-
-            foreach ($PessoasShuffled->all() as $i => $pessoa) {
-                if($pessoa->id == $PessoasCollect[$i]->id){
-                    $PessoasShuffled = $Pessoas->shuffle();
-                }
-                $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
-            }
-
+            dd($resultado);
 
             foreach ($resultado as $user => $sorteado){
                 $user = User::find($user);
@@ -101,6 +84,39 @@ class RealizaSorteio extends Command
             }
             return $this->info('Sorteio finalizado');
         }
+
+        private function executaSorteio($Participantes){
+            while (true){
+                $Pessoas = $Participantes;
+
+                $PessoasCollect = collect($Pessoas);
+
+                $PessoasCollect = $PessoasCollect->shuffle();
+//            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro\
+//            $PessoasCollect->push($Primeiro); //Coloca ele no fim
+
+                $PessoasCollect = $PessoasCollect->all();
+                $Pessoas = $Pessoas->values();
+
+                $resultado = [];
+                $this->info('SHUFFLE');
+                $PessoasShuffled = $Pessoas->shuffle();
+
+                foreach ($PessoasShuffled->all() as $i => $pessoa) {
+                    $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
+                }
+
+                foreach ($resultado as $user => $sorteado){
+                    if($user == $sorteado){
+                        
+                    }
+
+                }
+
+                return $resultado;
+            }
+
+    }
 
         protected function getMensagem($nomePessoa, $nomeAmigoSecreto)
         {
