@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\RealizaSorteio::class,
         \App\Console\Commands\Cadastraparticipante::class,
+        \App\Console\Commands\ChecaCadastros::class,
     ];
 
     /**
