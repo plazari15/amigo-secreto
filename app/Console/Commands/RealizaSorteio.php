@@ -137,7 +137,7 @@ class RealizaSorteio extends Command
         protected function getMensagem($nomePessoa, $nomeAmigoSecreto)
         {
             $mensagem = 'Oi ' . $nomePessoa . ' o seu amigo secreto é: ';
-            $mensagem .= $nomeAmigoSecreto . ' Sorteio realizado em: ' . Carbon::now()->format('d/m/Y H:i');
+            $mensagem .= $nomeAmigoSecreto . ' Sorteio realizado em: ' . Carbon::now()->format('d/m/Y H:i') . '. Não se esqueça: Guarde esta mensagem, pois o resultado não é armazenado.';
 
             return $mensagem;
         }
