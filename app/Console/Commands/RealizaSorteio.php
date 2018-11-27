@@ -51,33 +51,48 @@ class RealizaSorteio extends Command
                 exit;
             }
 
+            foreach ($Participantes as $participante) {
+                if(isset($participante->email)){
+                    if(!filter_var($participante->email, FILTER_VALIDATE_EMAIL)){
+                       $this->ERROR('TEM EMAIL INVALIDO');
+                        return false;
+                    }
+                }
+            }
+
             $resultado = $this->executaSorteio($Participantes);
+
+            $bar = $this->output->createProgressBar(count($resultado));
+
 
             foreach ($resultado as $user => $sorteado){
                 $user = User::find($user);
                 $sorteado = User::find($sorteado);
 
-                $this->alert('Sorteio realizado para '.$user->name);
                 Log::info('Sorteio realizado para '.$user->name);
 
                 if($user->telefone){
                     Log::info('enviando resultado via SMS para'.$user->name." ({$user->telefone})");
                     Log::info($this->getMensagem($user->name, $sorteado->name));
-//                    $totalVoice = new \TotalVoice\Client(env('TOTAL_VOICE'));
-//                    $response = $totalVoice->sms->enviar($user->telefone, $this->getMensagem($user->name, $sorteado->name));
-                    //Log::debug($response->getContent());
-                }else{
+                    $totalVoice = new \TotalVoice\Client(env('TOTAL_VOICE'));
+                    $response = $totalVoice->sms->enviar($user->telefone, $this->getMensagem($user->name, $sorteado->name));
+                    Log::debug($response->getContent());
+                }elseif($user->email){
                     Log::info('enviando resultado via EMAIL para'.$user->name." ({$user->telefone})");
                     Log::info($this->getMensagem($user->name, $sorteado->name));
-//                    \Mail::raw($this->getMensagem($user->name, $sorteado->name), function ($email) use ($sorteado, $user){
-//                        $email->subject($user->name .' Saiu o resultado do seu amigo Secreto');
-//                        $email->from('postmaster@mail.matilha.design', 'Pedro Lazari');
-//                        $email->to($user->email);
-//                    });
+                    \Mail::raw($this->getMensagem($user->name, $sorteado->name), function ($email) use ($sorteado, $user){
+                        $email->subject($user->name .' Saiu o resultado do seu amigo Secreto');
+                        $email->from('postmaster@mail.matilha.design', 'Pedro Lazari');
+                        $email->to($user->email);
+                    });
+                }else{
+                    $this->info('Não será possível notificar o '.$user->id);
+                    return false;
                 }
-                Log::info('------------------------------');
-                sleep(1);
+                $bar->advance();
+                sleep(5);
             }
+            $bar->finish();
             return $this->info('Sorteio finalizado');
         }
 
