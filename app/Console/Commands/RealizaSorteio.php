@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class RealizaSorteio extends Command
 {
@@ -42,43 +44,54 @@ class RealizaSorteio extends Command
         {
             $this->alert('Iniciando o sorteio do Amigo Secreto');
 
-            $Participantes = User::all();
+            $Participantes = User::orderBy('id', 'rand')->get();
 
             if($Participantes->count() < 3){
                 $this->error('Precisamos de no minimo 3 participantes');
                 exit;
             }
 
-            $Pessoas = $Participantes->shuffle();
+            $Pessoas = $Participantes;
             $PessoasCollect = collect($Pessoas);
-            $Primeiro = $PessoasCollect->shift();
-            $PessoasCollect->push($Primeiro);
+            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro
+            $PessoasCollect->push($Primeiro); //Coloca ele no fim
 
             $PessoasCollect = $PessoasCollect->values();
             $Pessoas = $Pessoas->values();
 
             $resultado = [];
-            foreach ($Pessoas as $i => $pessoa) {
+
+            $PessoasShuffled = $Pessoas->shuffle();
+
+            foreach ($PessoasShuffled->all() as $i => $pessoa) {
                 $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
             }
+
 
             foreach ($resultado as $user => $sorteado){
                 $user = User::find($user);
                 $sorteado = User::find($sorteado);
 
                 $this->alert('Sorteio realizado para '.$user->name);
+                Log::info('Sorteio realizado para '.$user->name);
 
                 if($user->telefone){
-                    $totalVoice = new \TotalVoice\Client(env('TOTAL_VOICE'));
-                    $totalVoice->sms->enviar($user->telefone, $this->getMensagem($user->name, $sorteado->name));
+                    Log::info('enviando resultado via SMS para'.$user->name." ({$user->telefone})");
+                    Log::info($this->getMensagem($user->name, $sorteado->name));
+//                    $totalVoice = new \TotalVoice\Client(env('TOTAL_VOICE'));
+//                    $response = $totalVoice->sms->enviar($user->telefone, $this->getMensagem($user->name, $sorteado->name));
+                    //Log::debug($response->getContent());
                 }else{
-                    \Mail::raw($this->getMensagem($user->name, $sorteado->name), function ($email) use ($sorteado, $user){
-                        $email->subject($user->name .' Saiu o resultado do seu amigo Secreto');
-                        $email->from('postmaster@mail.matilha.design', 'Pedro Lazari');
-                        $email->to($user->email);
-                    });
+                    Log::info('enviando resultado via EMAIL para'.$user->name." ({$user->telefone})");
+                    Log::info($this->getMensagem($user->name, $sorteado->name));
+//                    \Mail::raw($this->getMensagem($user->name, $sorteado->name), function ($email) use ($sorteado, $user){
+//                        $email->subject($user->name .' Saiu o resultado do seu amigo Secreto');
+//                        $email->from('postmaster@mail.matilha.design', 'Pedro Lazari');
+//                        $email->to($user->email);
+//                    });
                 }
-                sleep(2);
+                Log::info('------------------------------');
+                sleep(1);
             }
             return $this->info('Sorteio finalizado');
         }
@@ -86,7 +99,7 @@ class RealizaSorteio extends Command
         protected function getMensagem($nomePessoa, $nomeAmigoSecreto)
         {
             $mensagem = 'Oi ' . $nomePessoa . ' o seu amigo secreto é: ';
-            $mensagem .= $nomeAmigoSecreto . ' Não se esqueça: Guarde esta mensagem, pois o resultado não é armazenado.';
+            $mensagem .= $nomeAmigoSecreto . ' Sorteio realizado em: ' . Carbon::now()->format('d/m/Y H:i');
 
             return $mensagem;
         }
