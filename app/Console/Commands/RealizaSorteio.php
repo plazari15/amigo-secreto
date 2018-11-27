@@ -53,10 +53,6 @@ class RealizaSorteio extends Command
 
             $resultado = $this->executaSorteio($Participantes);
 
-
-
-            dd($resultado);
-
             foreach ($resultado as $user => $sorteado){
                 $user = User::find($user);
                 $sorteado = User::find($sorteado);
@@ -87,6 +83,7 @@ class RealizaSorteio extends Command
 
         private function executaSorteio($Participantes){
             while (true){
+                $this->comment('Embaralhando...');
                 //Iniciando
                 $countPart = count($Participantes);
                 $count = 0;
@@ -94,40 +91,31 @@ class RealizaSorteio extends Command
 
 
                 $Pessoas = $Participantes;
-
                 $PessoasCollect = collect($Pessoas);
-
                 $PessoasCollect = $PessoasCollect->shuffle();
-//            $Primeiro = $PessoasCollect->shift(); //Pega o primeiro\
-//            $PessoasCollect->push($Primeiro); //Coloca ele no fim
-
                 $PessoasCollect = $PessoasCollect->all();
                 $Pessoas = $Pessoas->values();
 
                 $resultado = [];
-                $this->info('SHUFFLE');
                 $PessoasShuffled = $Pessoas->shuffle();
 
                 foreach ($PessoasShuffled->all() as $i => $pessoa) {
                     $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
 
                     if($pessoa->id == $PessoasCollect[$i]->id){
-                        $this->comment(' INVALIDO');
-                        $valido = false;
                         $count++;
                     }
                 }
 
-                $this->comment('NAO VALIDO ' . $count);
-                $this->comment('PARTICIPANTES ' . $countPart);
 
-                \Log::info($resultado);
 
                 if($count <= 0){
-                    $this->info('CHEGA DE WHILE');
                     return $resultado;
+                }else{
+                    $this->error("{$count} Participantes inválidos...");
                 }
 
+                $this->comment('Nova tentativa...');
                 sleep(5);
             }
 
