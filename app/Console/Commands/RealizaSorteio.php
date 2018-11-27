@@ -73,13 +73,11 @@ class RealizaSorteio extends Command
 
                 if($user->telefone){
                     Log::info('enviando resultado via SMS para'.$user->name." ({$user->telefone})");
-                    Log::info($this->getMensagem($user->name, $sorteado->name));
                     $totalVoice = new \TotalVoice\Client(env('TOTAL_VOICE'));
                     $response = $totalVoice->sms->enviar($user->telefone, $this->getMensagem($user->name, $sorteado->name));
                     Log::debug($response->getContent());
                 }elseif($user->email){
                     Log::info('enviando resultado via EMAIL para'.$user->name." ({$user->telefone})");
-                    Log::info($this->getMensagem($user->name, $sorteado->name));
                     \Mail::raw($this->getMensagem($user->name, $sorteado->name), function ($email) use ($sorteado, $user){
                         $email->subject($user->name .' Saiu o resultado do seu amigo Secreto');
                         $email->from('postmaster@mail.matilha.design', 'Pedro Lazari');
