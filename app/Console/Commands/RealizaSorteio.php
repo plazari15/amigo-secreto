@@ -87,6 +87,12 @@ class RealizaSorteio extends Command
 
         private function executaSorteio($Participantes){
             while (true){
+                //Iniciando
+                $countPart = count($Participantes);
+                $count = 0;
+                $valido = true;
+
+
                 $Pessoas = $Participantes;
 
                 $PessoasCollect = collect($Pessoas);
@@ -104,16 +110,25 @@ class RealizaSorteio extends Command
 
                 foreach ($PessoasShuffled->all() as $i => $pessoa) {
                     $resultado[$pessoa->id] = $PessoasCollect[$i]->id;
-                }
 
-                foreach ($resultado as $user => $sorteado){
-                    if($user == $sorteado){
-                        
+                    if($pessoa->id == $PessoasCollect[$i]->id){
+                        $this->comment(' INVALIDO');
+                        $valido = false;
+                        $count++;
                     }
-
                 }
 
-                return $resultado;
+                $this->comment('NAO VALIDO ' . $count);
+                $this->comment('PARTICIPANTES ' . $countPart);
+
+                \Log::info($resultado);
+
+                if($count <= 0){
+                    $this->info('CHEGA DE WHILE');
+                    return $resultado;
+                }
+
+                sleep(5);
             }
 
     }
